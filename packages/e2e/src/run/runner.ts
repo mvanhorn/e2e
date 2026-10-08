@@ -36,9 +36,8 @@ import { loadAiSdk } from '../agent/ai-sdk.ts';
 import { AiTraceCollector, AiTraceRecorder, registerAiTraceRecorder } from '../internal/ai-trace.ts';
 import { DebugTrace } from '../internal/debug.ts';
 import { resultId, timestamp, uuidv7 } from '../internal/ids.ts';
-import { projectRelativePath } from '../internal/source.ts';
 import type { ExploreProgress } from '../explore/progress.ts';
-import { buildReport, type Report1Document, type ReportExplore, type TargetProvenance } from '../report/build.ts';
+import { buildReport, projectSource, type Report1Document, type ReportExplore, type TargetProvenance } from '../report/build.ts';
 import { agentStepTable } from '../report/debug-steps.ts';
 import { writeTracePages, type TracePages } from '../report/traces.ts';
 import { STATELESS_REPORTERS } from '../report/builtin.ts';
@@ -1109,7 +1108,7 @@ function toListedPair(projectRoot: string, pair: TestTargetPair): ListedPair {
     titlePath: pair.test.titlePath,
     kind: pair.test.kind,
     tags: pair.test.tags,
-    source: listedSource(projectRoot, pair.test.source, pair.test.file),
+    source: projectSource(projectRoot, pair.test.source, pair.test.file),
     session: pair.options.session,
     sessions: pair.test.sessions,
     serialId: pair.test.serialId,
@@ -1118,24 +1117,6 @@ function toListedPair(projectRoot: string, pair: TestTargetPair): ListedPair {
     disposition: pair.disposition,
     ...(pair.skip === undefined ? {} : { reason: pair.skip.reason }),
   };
-}
-
-/**
- * The declaration `report.json` stores. An absolute file becomes
- * project-relative, the way `relativeSource` writes it; a file that is not
- * inside the project falls back to the test's own path. No recorded source
- * stays absent rather than a synthesized line.
- */
-function listedSource(
-  projectRoot: string,
-  source: { readonly file: string; readonly line: number; readonly column: number } | undefined,
-  fallbackFile: string,
-): ListedPair['source'] {
-  if (source === undefined) return undefined;
-  let file = source.file;
-  if (path.isAbsolute(file)) file = projectRelativePath(projectRoot, file) ?? fallbackFile;
-  if (file.startsWith('/') || /^[A-Za-z]:/.test(file)) file = fallbackFile;
-  return { file, line: Math.max(1, source.line), column: Math.max(1, source.column) };
 }
 
 /**
