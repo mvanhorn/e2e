@@ -8,7 +8,7 @@ TypeScript 7.
 There is no separate spec. The code is the contract, pinned in three places:
 
 - The emitted `packages/e2e/dist/index.d.ts` (and `dist/engine/index.d.ts`,
-  `dist/oauth/*.d.ts`)
+  `dist/runner.d.ts`, `dist/oauth/*.d.ts`)
   is the public API. `packages/e2e/tests/types/sdk-types.ts` holds compile-time
   assertions (`@ts-expect-error` lines) for the parts that are easy to loosen
   by accident; it runs under the package `typecheck`, never under vitest.
@@ -576,7 +576,7 @@ trees, on both platforms, without a device.
   needs `node scripts/restore-peer-ranges.ts` after it, or `pnpm check` fails
   on the pin.
 - The runner publishes as the unscoped `e2e` (entry points `e2e`, `e2e/agent`,
-  `e2e/engine`, `e2e/oauth/chatgpt`, `e2e/oauth/copilot`, `e2e/oauth/grok`, `e2e/oauth/opencode-console`; the bin is `e2e` too); engines, reporters, and integrations publish public
+  `e2e/engine`, `e2e/runner`, `e2e/oauth/chatgpt`, `e2e/oauth/copilot`, `e2e/oauth/grok`, `e2e/oauth/opencode-console`; the bin is `e2e` too); engines, reporters, and integrations publish public
   under the `@e2e-dev` scope. The `@e2edev` scope (moved to `@e2e-dev` on
   2026-09-28), `@e2edev/e2e`, `@e2edev/oauth` (folded into `e2e/oauth` on
   2026-09-21), and `@e2e-dev/integrations` (moved to `@e2e-dev/kernel` on

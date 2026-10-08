@@ -8,7 +8,8 @@ import { detectPackageManager, execCommand, runScriptCommand } from '../internal
 import { packageVersion } from '../internal/package-version.ts';
 import { classifyError, exitCodeForCategory } from '../internal/errors.ts';
 import type { Shard, TagMode } from '../collect/select.ts';
-import { list, run, type ListedPair, type RunOptions, type RunOutcome } from '../run/runner.ts';
+import { list, type ListedPair } from '../runner.ts';
+import { run, type RunOptions, type RunOutcome } from '../run/runner.ts';
 import { claimRunnerOutput } from './run-output.ts';
 import { explore, STEP_BOUNDS, TIMEOUT_BOUNDS } from '../explore/index.ts';
 import { BUILTIN_REPORTERS, isBuiltinReporter } from '../report/builtin.ts';
@@ -254,7 +255,7 @@ type ListReporter = (typeof LIST_REPORTERS)[number];
 function formatListedPair(pair: ListedPair): string {
   const tags = pair.tags.map((tag) => ` #${bounded(tag)}`).join('');
   const line = `${pair.file} › ${pair.titlePath.map(bounded).join(' › ')} [${pair.target}]${tags}`;
-  return pair.disposition === 'skip' ? `${line} (skipped: ${pair.skipReason ?? 'skipped'})` : line;
+  return pair.disposition === 'skip' ? `${line} (skipped: ${pair.reason ?? 'skipped'})` : line;
 }
 
 /** The exit-code table of the CLI reference; the runner decides which one applies. */
@@ -775,22 +776,24 @@ function createProgram(version: string, telemetry: Telemetry): Command {
         command: Command,
       ) => {
         rejectForwardedFlags(command, files);
-        let pairs: ListedPair[];
+        let pairs: readonly ListedPair[];
         try {
           ({ pairs } = await list({
             files,
-            configPath: options.config,
-            targetIds: options.target,
+            config: options.config,
+            targets: options.target,
             ...selectionRunOptions(options),
           }));
         } catch (cause) {
           reportFailure(telemetry, cause);
           return;
         }
+        // `list` includes pairs a filter removed. The command prints the ones `e2e list` always has: run and skip.
+        const listed = pairs.filter((pair) => pair.disposition === 'run' || pair.disposition === 'skip');
         process.stdout.write(
           options.reporter === 'json'
-            ? `${JSON.stringify({ pairs }, null, 2)}\n`
-            : pairs.map((pair) => `${formatListedPair(pair)}\n`).join(''),
+            ? `${JSON.stringify({ pairs: listed }, null, 2)}\n`
+            : listed.map((pair) => `${formatListedPair(pair)}\n`).join(''),
         );
         process.exitCode = 0;
       },

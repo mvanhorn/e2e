@@ -226,6 +226,7 @@
             "pages": [
               "reference/config",
               "reference/cli",
+              "reference/runner",
               "reference/mcp",
               "reference/reporters",
               "reference/environment",

@@ -63,10 +63,14 @@ import { isDefinedTool } from '../../src/agent/public.ts';
 import { createAgent } from '../../src/agent/public.ts';
 // @ts-expect-error BLOCKABLE_CODES left e2e: a blocked verdict carries any code the errors reference marks blocked
 import { BLOCKABLE_CODES } from '../../src/index.ts';
+// @ts-expect-error list is e2e/runner: importing e2e does not load the runner
+import { list as listFromE2E } from '../../src/index.ts';
+import { ConfigurationError, isE2EError, list, type ListedPair, type ListOptions } from '../../src/runner.ts';
 
 isDefinedTool;
 createAgent;
 BLOCKABLE_CODES;
+listFromE2E;
 
 declare const agent: Agent;
 declare const appFixture: App;
@@ -587,3 +591,17 @@ describe('group', { tags: ['smoke'] }, () => {
 describe('async group', async () => {});
 // @ts-expect-error a suite hook sees suite fixtures only
 beforeAll((fixtures) => void fixtures.screen);
+
+// `e2e/runner` lists a selection in process. `config` is a path or a config value; `grep` is RegExp[].
+void list({
+  cwd: '.', config: 'e2e.config.ts', files: ['tests/a.e2e.ts'], tags: ['smoke'], tagMode: 'all', excludeTags: ['slow'],
+  grep: [/^plain$/], grepInvert: [/other/], lastFailed: false, shard: { index: 1, total: 2 }, passWithNoTests: true,
+  output: 'out', env: {}, targets: ['web'],
+} satisfies ListOptions);
+void list({ config: { targets } });
+void isE2EError(new ConfigurationError('NO_TESTS', 'none'));
+// @ts-expect-error grep is an array of RegExp, not strings
+void list({ grep: ['plain'] });
+// @ts-expect-error disposition is run, skip, or filtered
+const disposition: ListedPair['disposition'] = 'pending';
+void disposition;

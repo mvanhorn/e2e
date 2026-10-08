@@ -580,7 +580,7 @@ test.describe('group', () => {
 test('other', { tags: ['smoke'] }, async () => {});
 `,
       };
-      const { pairs, project } = await listProject(files, {});
+      const { pairs, unmatched, targets, project } = await listProject(files, {});
       expect(pairs.map((pair) => [pair.file, pair.titlePath.join(' > '), pair.target, pair.disposition])).toEqual([
         ['tests/list.e2e.ts', 'plain', 'fake', 'run'],
         ['tests/list.e2e.ts', 'group > nested', 'fake', 'run'],
@@ -588,9 +588,22 @@ test('other', { tags: ['smoke'] }, async () => {});
         ['tests/other.e2e.ts', 'other', 'fake', 'run'],
       ]);
       expect(pairs.map((pair) => pair.tags)).toEqual([[], ['smoke'], [], ['smoke']]);
-      expect(pairs[2]?.skipReason).toBe('not today');
+      expect(pairs[2]?.reason).toBe('not today');
+      expect(pairs[0]).toMatchObject({ id: expect.any(String), agent: 'default', source: { file: 'tests/list.e2e.ts' } });
+      expect(unmatched).toEqual([]);
+      expect(targets).toEqual(['fake']);
       expect(existsSync(path.join(project.dir, '.e2e'))).toBe(false);
       project.cleanup();
+
+      // A title grep leaves non-matching tests in the selection, marked filtered.
+      const grepped = await listProject(files, { listOptions: { grep: [/^plain$/] } });
+      expect(grepped.pairs.map((pair) => [pair.title, pair.disposition, pair.reason])).toEqual([
+        ['plain', 'run', undefined],
+        ['nested', 'filtered', 'title does not match --grep'],
+        ['left out', 'filtered', 'title does not match --grep'],
+        ['other', 'filtered', 'title does not match --grep'],
+      ]);
+      grepped.project.cleanup();
 
       // A config glob spelled with a leading `./` selects the same files.
       const dotted = await listProject(files, {

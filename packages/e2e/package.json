@@ -51,6 +51,10 @@
       "types": "./dist/engine/index.d.ts",
       "default": "./dist/engine/index.js"
     },
+    "./runner": {
+      "types": "./dist/runner.d.ts",
+      "default": "./dist/runner.js"
+    },
     "./oauth/chatgpt": {
       "types": "./dist/oauth/chatgpt.d.ts",
       "default": "./dist/oauth/chatgpt.js"

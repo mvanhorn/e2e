@@ -35,6 +35,16 @@ describe('the built declarations', () => {
     }
   });
 
+  it('declares list from e2e/runner and not from e2e', () => {
+    const runner = declaration('runner.d.ts');
+    for (const name of ['list', 'ConfigurationError', 'isE2EError']) {
+      expect(mentions(runner, name), name).toBe(true);
+    }
+    expect(runner).not.toMatch(/\bdeclare function run\b/u);
+    expect(runner).not.toMatch(/export \{[^}]*\brun\b[^}]*\}/u);
+    expect(declaration('index.d.ts')).not.toMatch(/\bdeclare function list\b/u);
+  });
+
   it.each([
     ['oauth/chatgpt.d.ts', 'chatgpt', 'ChatGptOptions'],
     ['oauth/copilot.d.ts', 'copilot', 'CopilotOptions'],

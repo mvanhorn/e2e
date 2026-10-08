@@ -58,7 +58,11 @@ CI=1 npx e2e run            # the CI defaults, locally
 `--last-failed`, `--shard`, `--pass-with-no-tests`), prints one line per
 test-target pair, `file › title [target] #tag`, skipped pairs ending in
 ` (skipped: <reason>)`, and starts no app, engine, or worker.
-`--reporter json` prints `{ "pairs": [...] }`.
+`--reporter json` prints `{ "pairs": [...] }` and names a skip reason `reason`.
+
+`import { list } from 'e2e/runner'` returns that selection plus the pairs a
+filter removed, positional arguments that matched no file, and the selected
+target names.
 
 ```bash
 npx e2e list tests/signup.e2e.ts --tag smoke --reporter json

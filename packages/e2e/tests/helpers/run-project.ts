@@ -121,15 +121,20 @@ export async function runExisting(
 export async function listProject(
   files: Readonly<Record<string, string>>,
   options: RunProjectOptions & { listOptions?: Partial<ListOptions> },
-): Promise<{ pairs: ListedPair[]; project: FixtureProject }> {
+): Promise<{
+  pairs: readonly ListedPair[];
+  unmatched: readonly string[];
+  targets: readonly string[];
+  project: FixtureProject;
+}> {
   const project = createProject(files);
-  const { pairs } = await list({
+  const listed = await list({
     cwd: project.dir,
-    rawConfig: { targets: defaultTargets(options.appUrl), ...options.config },
+    config: { targets: defaultTargets(options.appUrl), ...options.config },
     env: fixtureEnv(options.appUrl),
     ...options.listOptions,
   });
-  return { pairs, project };
+  return { ...listed, project };
 }
 
 /** Default file-backed config used by worker-path integration tests that open the fixture app. */
