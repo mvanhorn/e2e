@@ -5,7 +5,7 @@ import { randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { web } from '@e2e-dev/web';
-import type { ListOptions, ListedPair, RunOptions, RunOutcome } from '../../src/run/runner.ts';
+import type { ListOptions, ListedPair, ListResult, RunOptions, RunOutcome } from '../../src/run/runner.ts';
 import type { E2EConfig } from '../../src/index.ts';
 import { createFakeEngine, FAKE_APP } from './fake-engine.ts';
 
@@ -135,6 +135,11 @@ export async function listProject(
     ...options.listOptions,
   });
   return { ...listed, project };
+}
+
+/** Lists an existing project, so a test can edit its files between calls. */
+export async function listExisting(project: FixtureProject, options: Partial<ListOptions> = {}): Promise<ListResult> {
+  return list({ cwd: project.dir, env: fixtureEnv(undefined), ...options });
 }
 
 /** Default file-backed config used by worker-path integration tests that open the fixture app. */

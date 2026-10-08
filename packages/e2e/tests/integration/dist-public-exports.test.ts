@@ -42,7 +42,7 @@ describe('the built declarations', () => {
     }
     expect(runner).not.toMatch(/\bdeclare function run\b/u);
     expect(runner).not.toMatch(/export \{[^}]*\brun\b[^}]*\}/u);
-    expect(declaration('index.d.ts')).not.toMatch(/\bdeclare function list\b/u);
+    expect(mentions(declaration('index.d.ts'), 'list')).toBe(false);
   });
 
   it.each([

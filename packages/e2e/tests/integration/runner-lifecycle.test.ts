@@ -6,6 +6,7 @@ import { assertValidReport } from '../helpers/report-schema.ts';
 import { resultId } from '../../src/internal/ids.ts';
 import {
   createProject,
+  listExisting,
   listProject,
   resultByTitle,
   runExisting,
@@ -611,6 +612,34 @@ test('other', { tags: ['smoke'] }, async () => {});
       });
       expect(dotted.pairs.map((pair) => pair.title)).toEqual(['plain', 'nested', 'left out', 'other']);
       dotted.project.cleanup();
+    },
+    120_000,
+  );
+
+  it(
+    'lists through a config path, reports unmatched positionals, and sees an edited file on the next call',
+    async () => {
+      const project = createProject({
+        'e2e.config.ts': workerFakeConfigSource(1),
+        'tests/edit.e2e.ts': `import { test } from 'e2e';
+test('first', async () => {});
+`,
+      });
+      const first = await listExisting(project, { config: 'e2e.config.ts', files: ['tests/edit.e2e.ts', 'tests/missing.e2e.ts'] });
+      expect(first.pairs.map((pair) => pair.title)).toEqual(['first']);
+      expect(first.unmatched).toEqual(['tests/missing.e2e.ts']);
+      expect(first.targets).toEqual(['fake']);
+
+      writeFileSync(
+        path.join(project.dir, 'tests/edit.e2e.ts'),
+        `import { test } from 'e2e';
+test('first', async () => {});
+test('second', async () => {});
+`,
+      );
+      const second = await listExisting(project, { config: 'e2e.config.ts' });
+      expect(second.pairs.map((pair) => pair.title)).toEqual(['first', 'second']);
+      project.cleanup();
     },
     120_000,
   );
